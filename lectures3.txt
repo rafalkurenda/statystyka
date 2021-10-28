@@ -1,0 +1,119 @@
+Zad 1.
+
+SELECT em.last_name || ' ' || em.salary AS "WYNAGRODZENIE"
+FROM employees em
+WHERE em.department_id IN ( 20, 50 ) AND em.salary BETWEEN 2000 AND 7000
+ORDER BY em.last_name;
+
+Zad 2.
+
+SELECT em.hire_date, em.last_name, em.&parametr
+FROM employees em
+WHERE EXTRACT(YEAR FROM em.hire_date) = 2005 AND em.manager_id IS NOT NULL
+ORDER BY 3;
+
+
+Zad 3.
+
+SELECT em.first_name || ' ' || em.last_name, em.salary, em.phone_number
+FROM employees em
+WHERE substr(em.last_name, 3, 1) = 'e' AND upper(em.first_name) LIKE upper('%&part_of_first_name%')
+ORDER BY 1 DESC, 2 ASC;
+
+
+Zad 4.
+
+SELECT em.first_name, em.last_name, round(months_between(sysdate, em.hire_date)) AS working_months,
+CASE
+WHEN round(months_between(sysdate, em.hire_date)) <= 150
+THEN '10%'
+WHEN round(months_between(sysdate, em.hire_date)) BETWEEN 150 AND 200 
+THEN '20%'
+ELSE '30%'
+END as wysokosc_dodatku
+FROM employees em order by 3 asc
+ 
+ 
+Zad 5.
+
+SELECT dep.department_name, SUM(em.salary) sum_of_department_workers_salary, round(AVG(em.salary), 0) as avg_of_department_workers_salary
+FROM departments dep JOIN employees em ON dep.department_id = em.department_id JOIN jobs job ON job.job_id = em.job_id
+WHERE job.min_salary > 5000
+GROUP BY dep.department_id, dep.department_name
+  
+  
+Zad 6.
+
+SELECT em.last_name, dep.department_id, dep.department_name, em.job_id
+FROM employees em JOIN departments dep ON dep.department_id = em.department_id JOIN locations loc ON loc.location_id = dep.location_id
+WHERE loc.city = 'Toronto'
+	
+
+Zad 7.
+
+SELECT emp.first_name || ' ' || emp.last_name worker, cow
+FROM
+(
+SELECT emp.employee_id, LISTAGG(cow.first_name || ' ' || cow.last_name, '; ') 
+WITHIN GROUP
+(
+ORDER BY cow.last_name
+) 
+cow
+FROM employees emp JOIN employees mng ON mng.employee_id = emp.manager_id JOIN employees cow ON cow.manager_id = mng.employee_id
+WHERE emp.first_name = 'Jennifer' AND cow.employee_id NOT IN emp.employee_id
+GROUP BY emp.employee_id
+) q
+JOIN employees emp ON emp.employee_id = q.employee_id
+
+
+Zad 8.
+
+SELECT dep.department_name 
+FROM
+(
+SELECT dep.department_id, COUNT(em.employee_id) worker_count
+FROM departments dep
+JOIN employees em ON em.department_id = dep.department_id
+GROUP BY dep.department_id
+) q
+JOIN departments dep ON dep.department_id = q.department_id
+WHERE q.worker_count < 10
+	
+Zad 9.
+
+
+Zad 10.
+
+SELECT em.first_name || ' ' || em.last_name AS name, em.job_id, dep.department_name, em.salary, job_g.grade
+FROM employees em
+JOIN departments dep ON dep.department_id = em.department_id
+LEFT JOIN job_grades job_g ON em.salary BETWEEN job_g.min_salary AND job_g.max_salary
+
+
+Zad 11.
+
+SELECT em.first_name || ' ' || em.last_name, em.salary
+FROM employees em
+WHERE em.salary > 
+(
+SELECT
+AVG(em.salary)
+FROM employees em
+)
+ORDER BY em.salary
+DESC
+
+
+Zad 12
+
+SELECT distinct name
+FROM
+(
+SELECT em.first_name || ' ' || em.last_name name, em.employee_id
+FROM employees em JOIN employees em_1 ON em_1.department_id = em.department_id
+WHERE lower(em_1.last_name) LIKE '%u%'
+)
+
+
+
