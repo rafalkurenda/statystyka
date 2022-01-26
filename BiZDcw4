@@ -1,0 +1,348 @@
+Zad 1
+
+DECLARE
+    numer_max       departments.department_id%TYPE;
+    department_name departments.department_name%TYPE;
+BEGIN
+    SELECT
+        d.department_id
+    INTO numer_max
+    FROM
+        departments d
+    WHERE
+        d.department_id = (
+            SELECT
+                MAX(d.department_id)
+            FROM
+                departments d
+        );
+
+    numer_max := numer_max + 10;
+
+    department_name := 'EDUCATION';
+
+    INSERT INTO departments (
+        department_id,
+        department_name
+    ) VALUES (
+        numer_max,
+        department_name
+    );
+
+END;
+
+Zad 2
+
+DECLARE
+    numer_max       departments.department_id%TYPE;
+    department_name departments.department_name%TYPE;
+BEGIN
+    SELECT
+        d.department_id
+    INTO numer_max
+    FROM
+        departments d
+    WHERE
+        d.department_id = (
+            SELECT
+                MAX(d.department_id)
+            FROM
+                departments d
+        );
+
+    numer_max := numer_max + 10;
+    department_name := 'EDUCATION';
+    INSERT INTO departments (
+        department_id,
+        department_name
+    ) VALUES (
+        numer_max,
+        department_name
+    );
+
+    UPDATE departments d
+    SET
+        d.location_id = 3000
+    WHERE
+        d.department_id = numer_max;
+
+END;
+
+Zad 3 
+
+CREATE TABLE one_time (
+    one_column VARCHAR(50)
+);
+
+
+BEGIN
+    FOR loop_iterator IN 0..10 LOOP
+        IF loop_iterator NOT IN ( 4, 6 ) THEN
+            INSERT INTO one_time ( one_column ) VALUES ( to_char(loop_iterator) );
+
+        END IF;
+    END LOOP;
+END;
+
+Zad 4
+
+DECLARE
+    row_variable countries%rowtype;
+BEGIN
+    SELECT
+        *
+    INTO row_variable
+    FROM
+        countries c
+    WHERE
+        c.country_id = 'CA';
+
+    dbms_output.put_line(row_variable.country_name || ' ' || row_variable.region_id);
+END;
+
+
+Zad 5
+
+DECLARE
+    TYPE department_typ IS
+        TABLE OF departments%rowtype INDEX BY PLS_INTEGER;
+    departments_table department_typ;
+BEGIN
+    FOR i IN 1..10 LOOP
+        SELECT
+            *
+        INTO
+            departments_table(i)
+        FROM
+            departments d
+        WHERE
+            d.department_id = (i*10);
+
+    END LOOP;
+
+    FOR i IN departments_table.first..departments_table.last LOOP
+        dbms_output.put_line(departments_table(i).department_name);
+    END LOOP;
+
+END;
+
+Zad 6
+
+DECLARE
+    TYPE department_typ IS
+        TABLE OF departments%rowtype INDEX BY PLS_INTEGER;
+    departments_table department_typ;
+BEGIN
+    FOR i IN 1..10 LOOP
+        SELECT
+            *
+        INTO
+            departments_table(i)
+        FROM
+            departments d
+        WHERE
+            d.department_id = (i*10);
+
+    END LOOP;
+
+    FOR i IN departments_table.first..departments_table.last LOOP
+        dbms_output.put_line(departments_table(i).department_name);
+        dbms_output.put_line(departments_table(i).DEPARTMENT_ID);
+        dbms_output.put_line(departments_table(i).MANAGER_ID);
+        dbms_output.put_line(departments_table(i).LOCATION_ID);
+    END LOOP;
+
+END;
+
+Zad 7
+
+DECLARE
+    CURSOR salaries IS
+    SELECT
+        e.salary,
+        e.last_name
+    FROM
+        employees e
+    WHERE
+        e.department_id = 50;
+
+    salary    employees.salary%TYPE;
+    last_name employees.last_name%TYPE;
+BEGIN
+    OPEN salaries;
+    LOOP
+        FETCH salaries INTO
+            salary,
+            last_name;
+        EXIT WHEN salaries%notfound;
+        IF ( salary >= 3100 ) THEN
+            dbms_output.put_line(last_name || ' nie dawać podwyżki');
+        ELSE
+            dbms_output.put_line(last_name || ' dać podwyżkę');
+        END IF;
+
+    END LOOP;
+
+    CLOSE salaries;
+END;
+
+Zad 8
+
+DECLARE
+    CURSOR salaries (
+        min_salary           NUMBER,
+        max_salary           NUMBER,
+        letter_in_first_name STRING
+    ) IS
+    SELECT
+        e.first_name,
+        e.last_name
+    FROM
+        employees e
+    WHERE
+        e.salary BETWEEN min_salary AND max_salary
+        AND lower(e.first_name) LIKE '%'
+                                     || lower(letter_in_first_name)
+                                     || '%';
+
+    last_name  employees.last_name%TYPE;
+    first_name employees.first_name%TYPE;
+	
+Zad 8 a)
+
+BEGIN
+    OPEN salaries(1000, 5000, 'A');
+    LOOP
+        FETCH salaries INTO
+            first_name,
+            last_name;
+        EXIT WHEN salaries%notfound;
+        dbms_output.put_line(first_name
+                             || ' '
+                             || last_name);
+    END LOOP;
+
+    CLOSE salaries;
+END;
+
+Zad 8 b)
+
+BEGIN
+    OPEN salaries(5000, 20000, 'U');
+    LOOP
+        FETCH salaries INTO
+            first_name,
+            last_name;
+        EXIT WHEN salaries%notfound;
+        dbms_output.put_line(first_name
+                             || ' '
+                             || last_name);
+    END LOOP;
+
+    CLOSE salaries;
+END;
+
+Zad 9 a)
+
+create or replace PROCEDURE addjob (
+    job_id    STRING,
+    job_title STRING
+) AS
+BEGIN
+    INSERT INTO jobs (
+            job_id,
+            job_title
+        ) VALUES (
+            job_id,
+            job_title
+        );
+EXCEPTION
+    WHEN others THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+Zad 9 b)
+
+CREATE OR REPLACE PROCEDURE changejobtitle (
+    job_id_input    STRING,
+    job_title_input STRING
+) AS
+    not_updated EXCEPTION;
+BEGIN
+    UPDATE jobs
+    SET
+        job_title = job_title_input
+    WHERE
+        job_id = job_id_input;
+
+    IF ( SQL%rowcount = 0 ) THEN
+        RAISE not_updated;
+    END IF;
+EXCEPTION
+    WHEN not_updated THEN
+        dbms_output.put_line('Updated rows 0! Error!');
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+Zad 9 c)
+
+CREATE OR REPLACE PROCEDURE deletejob (
+    job_id_input STRING
+) AS
+    not_deleted EXCEPTION;
+BEGIN
+    DELETE FROM jobs
+    WHERE
+        job_id = job_id_input;
+
+    IF ( SQL%rowcount = 0 ) THEN
+        RAISE not_deleted;
+    END IF;
+EXCEPTION
+    WHEN not_deleted THEN
+        dbms_output.put_line('Deleted 0 rows! Error!');
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+Zad 9 d)
+
+CREATE OR REPLACE PROCEDURE getearings (
+    worker_id string
+) IS
+salary_output EMPLOYEES%ROWTYPE;
+BEGIN
+    SELECT * into salary_output FROM EMPLOYEES WHERE EMPLOYEE_ID = worker_id;
+    DBMS_OUTPUT.PUT_LINE('Salary: ' || salary_output.salary);
+    DBMS_OUTPUT.PUT_LINE('Last name: ' || salary_output.last_name);
+EXCEPTION
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+Zad 9 e)
+
+CREATE OR REPLACE PROCEDURE addemployees (
+    e NUMBER,
+    f STRING,
+    l STRING,
+    ems STRING,
+    p STRING,
+    h DATE,
+    j STRING,
+    s NUMBER,
+    c NUMBER,
+    m NUMBER,
+    d NUMBER
+) AS
+BEGIN
+    IF s > 20000 THEN
+        raise_application_error( -20001, 'Za duże wynagrodzenie');
+    END IF;
+    INSERT INTO employees (EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE, JOB_ID, SALARY, COMMISSION_PCT, MANAGER_ID, DEPARTMENT_ID) 
+    VALUES (e, f, l, ems, p, h, j, s, c, m, d);
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
