@@ -1,0 +1,292 @@
+create or replace PROCEDURE project_add_fight (f_id NUMBER, d_ate STRING,
+winner_id NUMBER, looser_id NUMBER, division STRING, mthod STRING, r_ound STRING,
+t_ime STRING, winner_stats_id NUMBER, looser_stats_id NUMBER) AS
+BEGIN
+    IF t_ime IS NOT NULL AND NOT PROJECT_VALIDATE_TIME(t_ime) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola time (poprawny np. 5:00). Wprowadzono: ' || t_ime);
+    END IF;
+    INSERT INTO fights (FIGHT_ID, "date", WINNER_ID, LOSER_ID, DIVISION, "METHOD", "ROUND", "TIME", WINNER_STATS_ID, LOSER_STATS_ID) 
+    VALUES (f_id, d_ate, winner_id, looser_id, division, mthod, r_ound, t_ime, winner_stats_id, looser_stats_id);
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+create or replace PROCEDURE project_add_fighter (fighter_id NUMBER, name_p STRING,
+height STRING, reach STRING, stance STRING, DOB STRING, SLpM STRING,
+Str_acc STRING, SApM STRING, Str_def STRING, TD_Avg STRING, TD_acc STRING, TD_def STRING, Sub_avb STRING) AS
+BEGIN
+    IF height IS NOT NULL AND NOT PROJECT_VALIDATE_HEIGHT(height) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola height (poprawny np. 21''23"). Wprowadzono: ' || height);
+    END IF;
+    IF reach IS NOT NULL AND NOT PROJECT_VALIDATE_HEIGHT(reach) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola reach (poprawny np. 21''23"). Wprowadzono: ' || reach);
+    END IF;
+    IF Str_acc IS NOT NULL AND NOT PROJECT_VALIDATE_PERCENTAGE(Str_acc) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola reach (poprawny np. 42.8%). Wprowadzono: ' || Str_acc);
+    END IF;
+    IF Str_def IS NOT NULL AND NOT PROJECT_VALIDATE_PERCENTAGE(Str_def) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola reach (poprawny np. 42.8%). Wprowadzono: ' || Str_def);
+    END IF;
+    IF TD_acc IS NOT NULL AND NOT PROJECT_VALIDATE_PERCENTAGE(TD_acc) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola reach (poprawny np. 42.8%). Wprowadzono: ' || TD_acc);
+    END IF;
+    IF TD_def IS NOT NULL AND NOT PROJECT_VALIDATE_PERCENTAGE(TD_def) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola reach (poprawny np. 42.8%). Wprowadzono: ' || TD_def);
+    END IF;
+    INSERT INTO fighters (FIGHTER_ID, "NAME", HEIGHT, REACH, STANCE, DOB, "SLpM", "Str.Acc.", "SApM", "Str.Def", "TD Avg", "TD Acc", "TD Def", "Sub. Avg") 
+    VALUES (fighter_id, name_p, height, reach, stance, DOB, SLpM, Str_acc, SApM, Str_def, TD_Avg, TD_acc,  TD_def, Sub_avb);
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+create or replace PROCEDURE project_add_stats (
+stats_id NUMBER, knockdowns STRING,
+sub_attemps STRING, 
+pass STRING, 
+reversals STRING, 
+takedowns_landed NUMBER,
+takedowns_attempts NUMBER,
+ssl NUMBER,
+ssa NUMBER,
+tsl NUMBER, 
+tsa NUMBER,
+hsl NUMBER,
+hsa NUMBER,
+bdl NUMBER,
+bda NUMBER,
+lsl NUMBER,
+lsa NUMBER,
+dsl NUMBER,
+dsa NUMBER,
+csl NUMBER,
+csa NUMBER,
+gsl NUMBER,
+gsa NUMBER
+) AS
+BEGIN
+    IF reversals IS NOT NULL AND NOT PROJECT_VALIDATE_TIME(reversals) THEN
+        raise_application_error( -20001, 'Zly format danych dla pola time (poprawny np. 5:00). Wprowadzono: ' || reversals);
+    END IF;
+    INSERT INTO stats (
+    STATS_ID, 
+    KNOCKDOWNS,
+    SUB_ATTEMPTS,
+    PASS,
+    REVERSALS,
+    TAKEDOWNS_LANDED,
+    TAKEDOWNS_ATTEMPTS, 
+    SIG_STRIKES_LANDED, 
+    SIG_STRIKES_ATTEMPTS, 
+    TOTAL_STRIKES_LANDED,
+    TOTAL_STRIKES_ATTEMPTS,
+    HEAD_STRIKES_LANDED,
+    HEAD_STRIKES_ATTEMPTS,
+    BODY_STRIKES_LANDED,
+    BODY_STRIKES_ATTEMPTS,
+    LEG_STRIKES_LANDED, 
+    LEG_STRIKES_ATTEMPTS, 
+    DISTANCE_STRIKES_LANDED, 
+    DISTANCE_STRIKES_ATTEMPTS,
+    CLINCH_STRIKES_LANDED,
+    CLINCH_STRIKES_ATTEMPTS,
+    GROUND_STRIKES_LANDED,
+    GROUND_STRIKES_ATTEMPTS
+    ) 
+    VALUES (
+        stats_id, knockdowns,
+        sub_attemps, 
+        pass, 
+        reversals, 
+        takedowns_landed,
+        takedowns_attempts,
+        ssl,
+        ssa,
+        tsl, 
+        tsa,
+        hsl,
+        hsa,
+        bdl,
+        bda,
+        lsl,
+        lsa,
+        dsl,
+        dsa,
+        csl,
+        csa,
+        gsl,
+        gsa
+    );
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+
+create or replace PROCEDURE project_delete_fighter (f_id NUMBER) IS
+    old_deleted_at FIGHTERS.deleted_at%TYPE;
+BEGIN
+    BEGIN
+      select deleted_at into old_deleted_at from FIGHTERS WHERE fighter_id = f_id;
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        old_deleted_at := NULL;
+    END;
+    
+    IF old_deleted_at IS NOT NULL THEN
+      raise_application_error( -20001, 'Kolumna zostala juz wczesniej usinieta (soft delete)');
+    ELSE 
+        UPDATE FIGHTERS
+        SET DELETED_AT=SYSDATE
+        WHERE fighter_id = f_id;
+    END IF;
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+
+create or replace PROCEDURE project_delete_fights (f_id NUMBER) IS
+    old_deleted_at FIGHTERS.deleted_at%TYPE;
+BEGIN
+    BEGIN
+      select deleted_at into old_deleted_at from FIGHTS WHERE fight_id = f_id;
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        old_deleted_at := NULL;
+    END;
+    
+    IF old_deleted_at IS NOT NULL THEN
+      raise_application_error( -20001, 'Kolumna zostala juz wczesniej usinieta (soft delete)');
+    ELSE 
+        UPDATE FIGHTS
+        SET DELETED_AT=SYSDATE
+        WHERE fight_id = f_id;
+    END IF;
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+create or replace PROCEDURE project_delete_stats (s_id NUMBER) IS
+    old_deleted_at FIGHTERS.deleted_at%TYPE;
+BEGIN
+    BEGIN
+      select deleted_at into old_deleted_at from STATS WHERE stats_id = s_id;
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        old_deleted_at := NULL;
+    END;
+    
+    IF old_deleted_at IS NOT NULL THEN
+      raise_application_error( -20001, 'Kolumna zostala juz wczesniej usinieta (soft delete)');
+    ELSE 
+        UPDATE STATS
+        SET DELETED_AT=SYSDATE
+        WHERE stats_id = s_id;
+    END IF;
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+
+create or replace PROCEDURE PROJECT_STATS_FIGHTERS (raport_type STRING) AS
+BEGIN
+    IF raport_type = 'year' THEN
+        INSERT INTO project_raports(FIGHTS, AVG_ROUNDS, DATA_DATE, RAPORT_DATE, "TYPE") 
+        SELECT Count(*) as amount_fights, 
+            AVG(TO_NUMBER("ROUND")),
+            to_char(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'YYYY-MM'),
+            SYSDATE,
+            'YEAR'
+            FROM fights
+            WHERE  to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY') = (select max(to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY')) from fights)
+            GROUP BY
+            to_char(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'YYYY-MM');
+    ELSIF raport_type = 'month' THEN
+        INSERT INTO project_raports(FIGHTS, AVG_ROUNDS, DATA_DATE, RAPORT_DATE, "TYPE") 
+        SELECT Count(*) as amount_fights, 
+            AVG(TO_NUMBER("ROUND")),
+            to_char(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'YYYY-MM-DD'),
+            SYSDATE,
+            'MONTH'
+            FROM fights
+            WHERE  to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY-MM') = (select max(to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY-MM')) from fights)
+            GROUP BY
+            to_char(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'YYYY-MM-DD');
+    ELSIF raport_type = 'quarter' THEN
+        INSERT INTO project_raports(FIGHTS, AVG_ROUNDS, DATA_DATE, RAPORT_DATE, "TYPE", "YEAR") 
+        SELECT Count(*) as amount_fights, 
+            AVG(TO_NUMBER("ROUND")),
+            TO_CHAR(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'Q'),
+            SYSDATE,
+            'QUART',
+            to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY')
+            FROM fights
+            WHERE  to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY') = (select max(to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY')) from fights)
+            GROUP BY
+            to_char(TO_DATE("date",'Month DD, YYYY','NLS_DATE_LANGUAGE = American'), 'YYYY'),
+            TO_CHAR(TO_DATE(
+                "date",
+                'Month DD, YYYY',
+                 'NLS_DATE_LANGUAGE = American'), 'Q');
+    ELSE
+        raise_application_error( -20001, 'Zly typ raportu');
+    END IF;
+EXCEPTION
+     WHEN others THEN
+        dbms_output.put_line( sqlerrm );
+END;
+
+
+create or replace PROCEDURE PROJET_UPDATE_FIGHT_DIVISION ( f_id NUMBER, div STRING) AS not_updated EXCEPTION;
+BEGIN
+    UPDATE fights SET DIVISION = div
+    WHERE fight_id = f_id;
+EXCEPTION
+    WHEN not_updated THEN
+        dbms_output.put_line('Updated rows 0! Error!');
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+
+create or replace PROCEDURE PROJET_UPDATE_FIGHTER_NAME ( f_id NUMBER, name STRING) AS not_updated EXCEPTION;
+BEGIN
+    UPDATE fighters SET name = name
+    WHERE fighter_id = f_id;
+EXCEPTION
+    WHEN not_updated THEN
+        dbms_output.put_line('Updated rows 0! Error!');
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
+
+
+create or replace PROCEDURE PROJET_UPDATE_STATS_TAKEDOWNS_LANDED ( s_id NUMBER, takedowns NUMBER) AS not_updated EXCEPTION;
+BEGIN
+    UPDATE stats SET TAKEDOWNS_LANDED = takedowns
+    WHERE stats_id = s_id;
+EXCEPTION
+    WHEN not_updated THEN
+        dbms_output.put_line('Updated rows 0! Error!');
+    WHEN OTHERS THEN
+        dbms_output.put_line('Something went wrong!');
+END;
