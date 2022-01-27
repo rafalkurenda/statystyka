@@ -1,0 +1,80 @@
+create or replace TRIGGER LOG_TRIGGER_FIGHTERS
+  AFTER INSERT OR UPDATE
+  ON FIGHTERS
+  FOR EACH ROW
+DECLARE
+  log_action  PROJECT_LOGS.action%TYPE;
+  log_record  PROJECT_LOGS.record_id%TYPE;
+BEGIN
+  IF INSERTING THEN
+    log_action := 'Insert';
+    log_record := :new.fighter_id;
+  ELSIF UPDATING THEN
+    IF :old.DELETED_AT IS NULL AND :new.DELETED_AT IS NOT NULL THEN
+      log_action := 'Deleted';
+    ELSE 
+      log_action := 'Update';
+    END IF;
+    
+    log_record := :old.fighter_id;
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('This code is not reachable.');
+  END IF;
+
+  INSERT INTO PROJECT_LOGS (ACTION, RESULT_TABLE, CREATED_AT, RECORD_ID)
+    VALUES (log_action, 'FIGHTERS', SYSDATE, log_record);
+END;
+
+create or replace TRIGGER LOG_TRIGGER_FIGHTS
+  AFTER INSERT OR UPDATE
+  ON FIGHTS
+  FOR EACH ROW
+DECLARE
+  log_action  PROJECT_LOGS.action%TYPE;
+  log_record  PROJECT_LOGS.record_id%TYPE;
+BEGIN
+  IF INSERTING THEN
+    log_action := 'Insert';
+    log_record := :new.fight_id;
+  ELSIF UPDATING THEN
+    IF :old.DELETED_AT IS NULL AND :new.DELETED_AT IS NOT NULL THEN
+      log_action := 'Deleted';
+    ELSE 
+      log_action := 'Update';
+    END IF;
+    
+    log_record := :old.fight_id;
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('This code is not reachable.');
+  END IF;
+
+  INSERT INTO PROJECT_LOGS (ACTION, RESULT_TABLE, CREATED_AT, RECORD_ID)
+    VALUES (log_action, 'FIGHTS', SYSDATE, log_record);
+END;
+
+create or replace TRIGGER LOG_TRIGGER_STATS
+  AFTER INSERT OR UPDATE
+  ON STATS
+  FOR EACH ROW
+DECLARE
+  log_action  PROJECT_LOGS.action%TYPE;
+  log_record  PROJECT_LOGS.record_id%TYPE;
+BEGIN
+  IF INSERTING THEN
+    log_action := 'Insert';
+    log_record := :new.stats_id;
+  ELSIF UPDATING THEN
+    IF :old.DELETED_AT IS NULL AND :new.DELETED_AT IS NOT NULL THEN
+      log_action := 'Deleted';
+    ELSE 
+      log_action := 'Update';
+    END IF;
+    
+    log_record := :old.stats_id;
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('This code is not reachable.');
+  END IF;
+
+  INSERT INTO PROJECT_LOGS (ACTION, RESULT_TABLE, CREATED_AT, RECORD_ID)
+    VALUES (log_action, 'STATS', SYSDATE, log_record);
+END;
